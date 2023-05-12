@@ -1062,6 +1062,126 @@ var planTests = []planTest{{
 				location: http://10.1.77.196:3100/loki/api/v1/push
 				override: merge
 `},
+}, {
+	summary: "Labels test with plain anchors/aliases",
+	input: []string{`
+		services:
+			svc1:
+				command: foo
+				override: merge
+				log-labels: &svc1-labels
+					label1: val1
+					label2: val2
+			svc2:
+				command: foo
+				override: merge
+				log-labels: *svc1-labels
+			svc3:
+				command: foo
+				override: merge
+				log-labels:
+					<<: *svc1-labels
+					label1: val4
+					label3: val3
+`},
+	layers: []*plan.Layer{{
+		Label: "layer-0",
+		Order: 0,
+		Services: map[string]*plan.Service{
+			"svc1": {
+				Name:     "svc1",
+				Command:  "foo",
+				Override: plan.MergeOverride,
+				LogLabels: map[string]string{
+					"label1": "val1",
+					"label2": "val2",
+				},
+			},
+			"svc2": {
+				Name:     "svc2",
+				Command:  "foo",
+				Override: plan.MergeOverride,
+				LogLabels: map[string]string{
+					"label1": "val1",
+					"label2": "val2",
+				},
+			},
+			"svc3": {
+				Name:     "svc3",
+				Command:  "foo",
+				Override: plan.MergeOverride,
+				LogLabels: map[string]string{
+					"label1": "val4",
+					"label2": "val2",
+					"label3": "val3",
+				},
+			},
+		},
+		Checks:     map[string]*plan.Check{},
+		LogTargets: map[string]*plan.LogTarget{},
+	}},
+}, {
+	summary: "Labels test with label-groups and aliases",
+	input: []string{`
+		definitions:
+			label-groups:
+				grp1: &grp1
+					label1: val1
+					label2: val2
+
+		services:
+			svc1:
+				command: foo
+				override: merge
+				log-labels: *grp1
+			svc2:
+				command: foo
+				override: merge
+				log-labels: *grp1
+			svc3:
+				command: foo
+				override: merge
+				log-labels:
+					<<: *grp1
+					label1: val4
+					label3: val3
+`},
+	layers: []*plan.Layer{{
+		Label: "layer-0",
+		Order: 0,
+		Services: map[string]*plan.Service{
+			"svc1": {
+				Name:     "svc1",
+				Command:  "foo",
+				Override: plan.MergeOverride,
+				LogLabels: map[string]string{
+					"label1": "val1",
+					"label2": "val2",
+				},
+			},
+			"svc2": {
+				Name:     "svc2",
+				Command:  "foo",
+				Override: plan.MergeOverride,
+				LogLabels: map[string]string{
+					"label1": "val1",
+					"label2": "val2",
+				},
+			},
+			"svc3": {
+				Name:     "svc3",
+				Command:  "foo",
+				Override: plan.MergeOverride,
+				LogLabels: map[string]string{
+					"label1": "val4",
+					"label2": "val2",
+					"label3": "val3",
+				},
+			},
+		},
+		Checks:     map[string]*plan.Check{},
+		LogTargets: map[string]*plan.LogTarget{},
+	}},
 }}
 
 func (s *S) TestParseLayer(c *C) {

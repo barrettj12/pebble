@@ -54,6 +54,7 @@ type Layer struct {
 	Label       string                `yaml:"-"`
 	Summary     string                `yaml:"summary,omitempty"`
 	Description string                `yaml:"description,omitempty"`
+	Definitions interface{}           `yaml:"definitions,omitempty"`
 	Services    map[string]*Service   `yaml:"services,omitempty"`
 	Checks      map[string]*Check     `yaml:"checks,omitempty"`
 	LogTargets  map[string]*LogTarget `yaml:"log-targets,omitempty"`
@@ -90,7 +91,8 @@ type Service struct {
 	KillDelay      OptionalDuration         `yaml:"kill-delay,omitempty"`
 
 	// Log forwarding
-	LogTargets []string `yaml:"log-targets,omitempty"`
+	LogTargets []string          `yaml:"log-targets,omitempty"`
+	LogLabels  map[string]string `yaml:"log-labels,omitempty"`
 }
 
 // Copy returns a deep copy of the service.
@@ -940,6 +942,7 @@ func ParseLayer(order int, label string, data []byte) (*Layer, error) {
 	if err != nil {
 		return nil, err
 	}
+	layer.Definitions = nil // definitions just for user, nil them out
 	return &layer, err
 }
 
